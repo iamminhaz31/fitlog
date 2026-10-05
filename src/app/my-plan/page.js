@@ -17,13 +17,33 @@ import { useWorkouts } from "@/components/WorkoutProvider";
 export default function MyPlanPage() {
   const [activeTab, setActiveTab] = useState("plan");
 
-  const {
+    const {
     plan,
     saved,
+    isLoaded,
     markAsDone,
     removeFromPlan,
     removeFromSaved,
   } = useWorkouts();
+
+  if (!isLoaded) {
+    return (
+      <>
+        <Navbar />
+
+        <main
+          role="status"
+          className="flex min-h-[60vh] items-center justify-center gap-3 text-zinc-400"
+        >
+          <span
+            aria-hidden="true"
+            className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-700 border-t-accent motion-reduce:animate-none"
+          />
+          <span>Loading workouts…</span>
+        </main>
+      </>
+    );
+  }
 
   const totalMinutes = plan.reduce(
     (total, workout) => total + workout.duration,

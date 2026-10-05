@@ -1,17 +1,95 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { Toaster, toast } from "sonner";
 
 const WorkoutContext = createContext(null);
+const STORAGE_KEY = "fitlog-workouts-v1";
+
+function validateWorkouts(items) {
+  if (!Array.isArray(items)) {
+    throw new Error("Invalid workout list.");
+  }
+
+  const ids = new Set();
+
+  return items.map((item) => {
+    if (
+      !item ||
+      !Number.isInteger(item.id) ||
+      typeof item.name !== "string" ||
+      typeof item.image !== "string" ||
+      typeof item.equipment !== "string" ||
+      !Number.isFinite(item.duration) ||
+      !Number.isFinite(item.caloriesBurned) ||
+      !Number.isFinite(item.rating) ||
+      ids.has(item.id)
+    ) {
+      throw new Error("Invalid saved workout.");
+    }
+
+    ids.add(item.id);
+
+    return { ...item, done: item.done === true };
+  });
+}
 
 export default function WorkoutProvider({ children }) {
   const [plan, setPlan] = useState([]);
   const [saved, setSaved] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const activeCount = plan.filter((item) => !item.done).length;
 
+  // Read stored data after the component mounts in the browser.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = window.localStorage.getItem(STORAGE_KEY);
+
+        if (stored) {
+          const data = JSON.parse(stored);
+          const storedPlan = validateWorkouts(data.plan);
+          const storedSaved = validateWorkouts(data.saved);
+
+          setPlan(storedPlan);
+          setSaved(storedSaved);
+        }
+      } catch {
+        toast.error("Could not restore your previous workout lists.");
+      } finally {
+        setIsLoaded(true);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  // Only save after the previous data has been read.
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    try {
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ plan, saved })
+      );
+    } catch {
+      toast.error(
+        "Could not save changes on this device. They may be lost on refresh.",
+        { id: "fitlog-storage-error" }
+      );
+    }
+  }, [plan, saved, isLoaded]);
+
   function addToPlan(workout) {
+    if (!isLoaded) return;
+
     if (plan.some((item) => item.id === workout.id)) {
       toast.info("This workout is already in your plan.");
       return;
@@ -40,6 +118,8 @@ export default function WorkoutProvider({ children }) {
   }
 
   function saveWorkout(workout) {
+    if (!isLoaded) return;
+
     if (saved.some((item) => item.id === workout.id)) {
       toast.info("This workout is already saved.");
       return;
@@ -57,6 +137,8 @@ export default function WorkoutProvider({ children }) {
   }
 
   function markAsDone(id) {
+    if (!isLoaded) return;
+
     const workout = plan.find((item) => item.id === id);
 
     if (!workout || workout.done) return;
@@ -71,12 +153,24 @@ export default function WorkoutProvider({ children }) {
   }
 
   function removeFromPlan(id) {
-    setPlan((previous) => previous.filter((item) => item.id !== id));
+    if (!isLoaded) return;
+    if (!plan.some((item) => item.id === id)) return;
+
+    setPlan((previous) =>
+      previous.filter((item) => item.id !== id)
+    );
+
     toast.success("Removed from today's plan.");
   }
 
   function removeFromSaved(id) {
-    setSaved((previous) => previous.filter((item) => item.id !== id));
+    if (!isLoaded) return;
+    if (!saved.some((item) => item.id === id)) return;
+
+    setSaved((previous) =>
+      previous.filter((item) => item.id !== id)
+    );
+
     toast.success("Removed from saved workouts.");
   }
 
@@ -85,6 +179,7 @@ export default function WorkoutProvider({ children }) {
       value={{
         plan,
         saved,
+        isLoaded,
         activeCount,
         addToPlan,
         saveWorkout,
