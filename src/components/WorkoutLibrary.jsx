@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LoaderCircle } from "lucide-react";
+import { ChevronDown, LoaderCircle } from "lucide-react";
 import WorkoutCard from "@/components/WorkoutCard";
 
 const API_URLS = [
@@ -14,6 +14,19 @@ export default function WorkoutLibrary() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
+  const [sortBy, setSortBy] = useState("duration");
+
+  const sortedWorkouts = [...workouts].sort((a, b) => {
+    if (sortBy === "calories") {
+      return b.caloriesBurned - a.caloriesBurned;
+    }
+
+    if (sortBy === "rating") {
+      return b.rating - a.rating;
+    }
+
+    return a.duration - b.duration;
+  });
 
   useEffect(() => {
     let ignore = false;
@@ -75,13 +88,43 @@ export default function WorkoutLibrary() {
       id="library"
       className="mx-auto min-h-[60vh] max-w-7xl scroll-mt-6 px-4 py-12 sm:px-6 lg:px-8"
     >
-      <h2 className="text-3xl font-bold">
-        THE LIBRARY
-      </h2>
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-3xl font-bold">THE LIBRARY</h2>
 
-      <p className="mt-3 text-zinc-400">
-        Twelve lifts covering every major muscle group.
-      </p>
+          <p className="mt-3 text-zinc-400">
+            Twelve lifts covering every major muscle group.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <label
+            htmlFor="workout-sort"
+            className="shrink-0 text-sm text-zinc-400"
+          >
+            Sort By
+          </label>
+
+          <div className="relative">
+            <select
+              id="workout-sort"
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value)}
+              className="appearance-none rounded-lg border border-white/20 bg-[#181818] py-2.5 pr-10 pl-4 text-sm text-white focus:border-accent focus:outline-none"
+            >
+              <option value="duration">Duration</option>
+              <option value="calories">Calories</option>
+              <option value="rating">Rating</option>
+            </select>
+
+            <ChevronDown
+              size={16}
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-zinc-400"
+            />
+          </div>
+        </div>
+      </div>
 
       {loading ? (
         <div
@@ -116,11 +159,8 @@ export default function WorkoutLibrary() {
         </p>
       ) : (
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {workouts.map((workout) => (
-            <WorkoutCard
-              key={workout.id}
-              workout={workout}
-            />
+          {sortedWorkouts.map((workout) => (
+            <WorkoutCard key={workout.id} workout={workout} />
           ))}
         </div>
       )}
