@@ -67,4 +67,4 @@ Finished workouts stay in your plan and summary until you remove them. Once you 
 ## Project Links
 
 - Live Website: https://fitlog-zeta-ten.vercel.app/
-- GitHub Repository: Coming after the repo is created.
+- GitHub Repository: https://github.com/iamminhaz31/fitlog/tree/main
