@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Plus, Bookmark } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import WorkoutActions from "@/components/WorkoutActions";
 import Navbar from "@/components/Navbar";
 
 const API_URLS = [
@@ -185,25 +186,7 @@ export default async function WorkoutDetailsPage({ params }) {
               </ol>
             </section>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <button
-                type="button"
-                disabled
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-5 py-3.5 text-sm font-bold text-black disabled:opacity-60"
-              >
-                <Plus size={18} aria-hidden="true" />
-                Add to today&apos;s plan
-              </button>
-
-              <button
-                type="button"
-                disabled
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/25 px-5 py-3.5 text-sm font-bold disabled:opacity-60"
-              >
-                <Bookmark size={18} aria-hidden="true" />
-                Save for later
-              </button>
-            </div>
+            <WorkoutActions workout={workout} />
           </div>
         </div>
       </main>

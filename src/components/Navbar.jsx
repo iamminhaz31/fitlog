@@ -3,9 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useWorkouts } from "@/components/WorkoutProvider";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { plan, saved } = useWorkouts();
 
   const links = [
     { label: "Workout", href: "/" },
@@ -27,6 +29,7 @@ export default function Navbar() {
             height={36}
             className="h-9 w-9 object-contain"
           />
+
           <span className="text-xl font-extrabold tracking-tight">
             FITLOG
           </span>
@@ -34,16 +37,25 @@ export default function Navbar() {
 
         <nav
           aria-label="Main navigation"
-          className="order-3 col-span-2 flex justify-center gap-6 md:order-none md:col-span-1"
+          className="order-3 col-span-2 flex justify-center gap-6 md:order-0 md:col-span-1"
         >
           {links.map((link) => {
-            const isActive = pathname === link.href;
+            const isActive =
+              link.href === "/"
+                ? pathname === "/" || pathname.startsWith("/workouts/")
+                : pathname === link.href;
 
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                aria-current={isActive ? "page" : undefined}
+                aria-current={
+                  isActive
+                    ? pathname === link.href
+                      ? "page"
+                      : "location"
+                    : undefined
+                }
                 className={`border-b-2 px-1 py-2 text-sm font-semibold transition-colors ${
                   isActive
                     ? "border-accent text-accent"
@@ -61,14 +73,14 @@ export default function Navbar() {
             href="/my-plan"
             className="rounded-full bg-accent px-3 py-2 text-xs font-bold text-black sm:text-sm"
           >
-            Plan <span className="ml-1">0</span>
+            Plan <span className="ml-1">{plan.length}</span>
           </Link>
 
           <Link
             href="/my-plan"
             className="rounded-full border border-white/25 px-3 py-2 text-xs font-bold text-white transition-colors hover:border-accent sm:text-sm"
           >
-            Saved <span className="ml-1">0</span>
+            Saved <span className="ml-1">{saved.length}</span>
           </Link>
         </div>
       </div>
